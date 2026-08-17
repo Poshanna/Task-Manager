@@ -83,24 +83,24 @@ pipeline {
                     while (retryCount < maxRetries && !healthy) {
                         try {
                             def response = sh(
-                                script: "curl -s -o /dev/null -w '%{http_code}' ${BACKEND_HEALTH_URL}",
+                                script: "docker exec task_backend_api wget -qO- http://localhost:5000/api/health || true",
                                 returnStdout: true
                             ).trim()
 
-                            if (response == '200') {
-                                echo "Health Check SUCCESS via ${BACKEND_HEALTH_URL}! HTTP Status: 200"
+                            if (response.contains('"status":"UP"')) {
+                                echo "Health Check SUCCESS via backend container! Response: ${response}"
                                 healthy = true
                             } else {
-                                def responseAlt = sh(
-                                    script: "curl -s -o /dev/null -w '%{http_code}' ${BACKEND_HEALTH_URL_ALT}",
+                                def httpStatus = sh(
+                                    script: "curl -s -o /dev/null -w '%{http_code}' ${BACKEND_HEALTH_URL_ALT} || true",
                                     returnStdout: true
                                 ).trim()
 
-                                if (responseAlt == '200') {
+                                if (httpStatus == '200') {
                                     echo "Health Check SUCCESS via ${BACKEND_HEALTH_URL_ALT}! HTTP Status: 200"
                                     healthy = true
                                 } else {
-                                    echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned status (localhost: ${response}, host.docker.internal: ${responseAlt}). Retrying in 5s..."
+                                    echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned response: ${response}. Retrying in 5s..."
                                     sleep 5
                                     retryCount++
                                 }
@@ -113,7 +113,7 @@ pipeline {
                     }
 
                     if (!healthy) {
-                        error("Deployment verification failed: Backend Health Check did not return HTTP 200 OK.")
+                        error("Deployment verification failed: Backend Health Check did not return UP status.")
                     }
                 }
             }
