@@ -32,9 +32,9 @@ VALUES (
     1,
     'Demo Student',
     'student@devops.edu',
-    '$2a$10$wNqg8S9T12P4WqZgE0Z9u.oX8w.mB0vP4S9T12P4WqZgE0Z9u.oX8',
+    '$2a$10$g/5rfwfNFg9/SyyARCb/6O1G6Uiod7ygO5bvpmLHEbBsQ18e8Am6K',
     NOW()
-) ON CONFLICT (email) DO NOTHING;
+) ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
 
 -- Reset user sequence if needed
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
