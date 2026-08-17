@@ -17,17 +17,21 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                echo '=== STAGE 2: Installing Backend and Frontend dependencies ==='
-                dir('backend') {
-                    sh 'npm install'
-                }
-                dir('frontend') {
-                    sh 'npm install'
-                }
-            }
+       stage('Install Dependencies') {
+    steps {
+        echo '=== STAGE 2: Installing Backend and Frontend dependencies ==='
+
+        dir('backend') {
+            sh 'rm -rf node_modules'
+            sh 'npm install'
         }
+
+        dir('frontend') {
+            sh 'rm -rf node_modules'
+            sh 'npm install --include=optional'
+        }
+    }
+}
 
         stage('Backend Tests') {
             steps {
