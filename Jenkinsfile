@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+    nodejs 'NodeJS-20'
+}
 
     environment {
         APP_NAME = 'task-management-system'
