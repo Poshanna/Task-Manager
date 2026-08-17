@@ -8,6 +8,7 @@ pipeline {
     environment {
         APP_NAME = 'task-management-system'
         BACKEND_HEALTH_URL = 'http://localhost:5000/api/health'
+        BACKEND_HEALTH_URL_ALT = 'http://host.docker.internal:5000/api/health'
     }
 
     stages {
@@ -87,12 +88,22 @@ pipeline {
                             ).trim()
 
                             if (response == '200') {
-                                echo "Health Check SUCCESS! HTTP Status: ${response}"
+                                echo "Health Check SUCCESS via ${BACKEND_HEALTH_URL}! HTTP Status: 200"
                                 healthy = true
                             } else {
-                                echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned HTTP status: ${response}. Retrying in 5s..."
-                                sleep 5
-                                retryCount++
+                                def responseAlt = sh(
+                                    script: "curl -s -o /dev/null -w '%{http_code}' ${BACKEND_HEALTH_URL_ALT}",
+                                    returnStdout: true
+                                ).trim()
+
+                                if (responseAlt == '200') {
+                                    echo "Health Check SUCCESS via ${BACKEND_HEALTH_URL_ALT}! HTTP Status: 200"
+                                    healthy = true
+                                } else {
+                                    echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned status (localhost: ${response}, host.docker.internal: ${responseAlt}). Retrying in 5s..."
+                                    sleep 5
+                                    retryCount++
+                                }
                             }
                         } catch (Exception e) {
                             echo "Health Check attempt ${retryCount + 1}/${maxRetries} failed with error. Retrying in 5s..."
@@ -102,7 +113,7 @@ pipeline {
                     }
 
                     if (!healthy) {
-                        error("Deployment verification failed: Backend Health Check at ${BACKEND_HEALTH_URL} did not return HTTP 200 OK.")
+                        error("Deployment verification failed: Backend Health Check did not return HTTP 200 OK.")
                     }
                 }
             }
