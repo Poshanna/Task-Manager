@@ -29,6 +29,7 @@ pipeline {
         dir('frontend') {
             sh 'rm -rf node_modules'
             sh 'npm install --include=optional'
+            sh 'npm install --no-save --package-lock=false @rollup/rollup-linux-x64-gnu@4.62.4 --force'
         }
     }
 }
