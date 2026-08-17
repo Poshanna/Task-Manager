@@ -1,287 +1,158 @@
-# Task Management System with Jenkins CI/CD 🚀
+# Full-Stack Task Management System with Jenkins CI/CD 🚀
 
-A full-stack DevOps demonstration project featuring a **Task Management System** powered by **React (Vite)**, **Node.js (Express)**, **PostgreSQL**, and containerized using **Docker** and **Docker Compose**. 
-
-The core highlight of this project is a fully configured **Jenkins Declarative CI/CD Pipeline** (`Jenkinsfile`) that automates code checkout, dependency installation, backend unit testing, frontend compilation, Docker image containerization, deployment, and endpoint health checks.
+A production-ready DevOps assignment project featuring a **Task Management System** built with **React (Vite)**, **Node.js (Express)**, **PostgreSQL**, containerized using **Docker** and **Docker Compose**, and automated using a **Jenkins Declarative Pipeline (`Jenkinsfile`)**.
 
 ---
 
-## 📋 Table of Contents
-- [Architecture & Tech Stack](#-architecture--tech-stack)
-- [Project Features](#-project-features)
-- [Directory Structure](#-directory-structure)
-- [Local Development Setup](#-local-development-setup)
-- [Docker Compose Instructions](#-docker-compose-instructions)
-- [Jenkins CI/CD Pipeline Overview](#-jenkins-cicd-pipeline-overview)
-- [Jenkins Setup & Configuration Guide](#-jenkins-setup--configuration-guide)
-- [GitHub Webhook Integration](#-github-webhook-integration)
-- [Testing Instructions](#-testing-instructions)
-- [Demonstration Workflow](#-demonstration-workflow)
-- [Recommended Screenshots for DevOps Assignment](#-recommended-screenshots-for-devops-assignment)
-
----
-
-## 🏗️ Architecture & Tech Stack
+## 🏗️ CI/CD Architecture & Flow
 
 ```text
-[ Developer Push ] ──► [ GitHub Repository ] ──► [ Jenkins CI/CD Pipeline ]
-                                                            │
-    ┌───────────────────────────────────────────────────────┴────────────────────────────────────────┐
-    ▼                       ▼                        ▼                       ▼                       ▼
-Stage 1: Checkout     Stage 2: Install    Stage 3: Backend Tests   Stage 4: Frontend Build  Stage 5: Docker Build
-                                                                                                     │
-    ┌────────────────────────────────────────────────────────────────────────────────────────────────┘
-    ▼                                       ▼
-Stage 6: Deploy (Docker Compose)    Stage 7: Health Check (http://localhost:5000/api/health)
-```
-
-### Technology Stack
-- **Frontend**: React.js (Vite), React Router v6, Axios, Lucide Icons, Custom CSS3 Design System
-- **Backend**: Node.js, Express.js REST API
-- **Database**: PostgreSQL 16
-- **Authentication**: JWT (JSON Web Tokens) with `bcryptjs` password hashing
-- **Testing**: Jest & Supertest
-- **DevOps & Infrastructure**: Git, GitHub, Docker, Docker Compose, Jenkins Declarative Pipeline
-
----
-
-## ✨ Project Features
-
-### User Authentication
-- User Registration with hashed passwords
-- Secure JWT-based Login
-- Protected Frontend Routes & Profile View
-- Isolated per-user task state
-
-### Task Management (CRUD & Filtering)
-- Create, View, Edit, and Delete tasks
-- Real-time task filtering by **Status** (`TODO`, `IN_PROGRESS`, `COMPLETED`)
-- Filtering by **Priority** (`LOW`, `MEDIUM`, `HIGH`)
-- Text Search by task title and description
-- Due Date picker & status transition management
-
-### Interactive Dashboard
-- Real-time counters: Total Tasks, Pending, In-Progress, Completed, High Priority
-- Quick task creation modal
-- Recent task activity list
-
----
-
-## 📂 Directory Structure
-
-```text
-Task manager/
-├── frontend/
-│   ├── src/
-│   │   ├── components/       # Navbar, ProtectedRoute, TaskModal
-│   │   ├── pages/            # Login, Register, Dashboard, Tasks, Profile
-│   │   ├── services/         # api.js (Axios API client)
-│   │   ├── context/          # AuthContext.jsx (JWT state management)
-│   │   ├── App.jsx           # Main Router
-│   │   ├── index.css         # Styling design tokens & UI classes
-│   │   └── main.jsx          # React DOM entry
-│   ├── nginx.conf            # Nginx SPA serving configuration
-│   ├── package.json
-│   ├── vite.config.js
-│   └── Dockerfile            # Multi-stage React/Nginx Dockerfile
-├── backend/
-│   ├── config/               # db.js (PostgreSQL pool configuration)
-│   ├── controllers/          # authController.js, taskController.js
-│   ├── middleware/           # authMiddleware.js, errorHandler.js
-│   ├── routes/               # authRoutes.js, taskRoutes.js, healthRoutes.js
-│   ├── tests/                # health.test.js, auth.test.js, task.test.js
-│   ├── app.js                # Express App definition
-│   ├── server.js             # HTTP listener entry point
-│   ├── package.json
-│   └── Dockerfile            # Node.js backend Dockerfile
-├── database/
-│   └── init.sql              # PostgreSQL schemas, indexes & seed data
-├── docker-compose.yml        # Orchestration (db, backend, frontend)
-├── Jenkinsfile               # Jenkins Declarative Pipeline (7 stages)
-├── .env.example              # Environment variables template
-├── .gitignore
-└── README.md
+    Developer
+        ↓
+    GitHub
+        ↓
+    Jenkins
+        ↓
+    Checkout
+        ↓
+    Install Dependencies
+        ↓
+    Automated Tests (Jest / Supertest)
+        ↓
+    Frontend Build (Vite Production)
+        ↓
+    Docker Build (Docker Compose)
+        ↓
+    Docker Compose Deploy
+        ↓
+    Health Check (GET /api/health)
+        ↓
+    Running Task Management System
 ```
 
 ---
 
-## ⚙️ Local Development Setup
+## 🛠️ Project Overview & Technology Stack
 
-### 1. Prerequisites
-- Node.js (v18 or v20)
-- PostgreSQL installed and running locally
-- Git
+### 1. Application Layer
+- **Frontend**: React.js (Vite), React Router v6, Axios, Lucide Icons, Modern Dark Glassmorphism CSS.
+- **Backend**: Node.js, Express.js REST API with JWT authentication (`jsonwebtoken`), password hashing (`bcryptjs`).
+- **Database**: PostgreSQL 16 with schema initialization, indexes, and sample seed data (`database/init.sql`).
+- **Testing**: Jest & Supertest API unit testing suite.
 
-### 2. Environment Variables
-Copy `.env.example` to create a local `.env` file in the root directory:
+### 2. DevOps & Infrastructure Layer
+- **Containerization**: Multi-stage Dockerfiles (`frontend/Dockerfile`, `backend/Dockerfile`) orchestrated via `docker-compose.yml`.
+- **Jenkins CI/CD**: Custom Dockerized Jenkins runner (`jenkins-docker/Dockerfile`) equipped with Docker CLI, Docker Compose plugin, and Docker socket access.
+- **Pipeline Automation**: 7-stage Declarative `Jenkinsfile`.
+
+---
+
+## 📋 Jenkins CI/CD Pipeline Stages
+
+The `Jenkinsfile` automates the complete continuous integration and deployment flow across 7 distinct stages:
+
+1. **Checkout**: Retrieves source code from the GitHub repository (`https://github.com/Poshanna/Task-Manager`).
+2. **Install Dependencies**: Executes `npm install` for backend and frontend (includes `--include=optional` and Rollup Linux workaround for Vite).
+3. **Backend Tests**: Executes Jest & Supertest unit tests (`npm test`). The pipeline fails if any test fails.
+4. **Frontend Build**: Compiles React application into static production assets (`npm run build`).
+5. **Docker Build**: Executes `docker compose build` using Docker CLI and Compose plugin.
+6. **Deploy**: Redeploys application containers safely via `docker compose down` followed by `docker compose up -d`.
+7. **Health Check**: Polls `http://localhost:5000/api/health` with automated retries until HTTP status 200 OK is confirmed.
+
+---
+
+## 🐳 Custom Jenkins CI Environment Setup (`jenkins-docker/`)
+
+To support running Docker and Docker Compose commands inside Jenkins without missing binaries, a custom Jenkins image is defined in `jenkins-docker/Dockerfile`:
+
+```dockerfile
+FROM jenkins/jenkins:lts
+
+USER root
+
+RUN apt-get update \
+    && apt-get install -y ca-certificates curl gnupg \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
+    && chmod a+r /etc/apt/keyrings/docker.asc \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list \
+    && apt-get update \
+    && apt-get install -y docker-ce-cli docker-compose-plugin \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g 999 docker || true \
+    && usermod -aG docker jenkins
+
+USER jenkins
+```
+
+### Build & Launch Custom Jenkins Container (Preserving `jenkins_home` Data)
 ```bash
-cp .env.example .env
+# 1. Build custom Jenkins image
+docker build -t jenkins-docker:latest ./jenkins-docker
+
+# 2. Stop and remove existing container (volume jenkins_home is PRESERVED)
+docker stop jenkins
+docker rm jenkins
+
+# 3. Run new Jenkins container with Docker socket mount
+docker run -d --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v //var/run/docker.sock:/var/run/docker.sock \
+  --group-add 0 \
+  jenkins-docker:latest
 ```
 
-### 3. Backend Setup
+---
+
+## ⚙️ How to Configure & Run the Jenkins Pipeline
+
+1. Access Jenkins Dashboard at **`http://localhost:8080`**.
+2. Install **NodeJS Plugin** under **Manage Jenkins** ➔ **Plugins**.
+3. Configure **NodeJS-20** under **Manage Jenkins** ➔ **Tools** ➔ **NodeJS installations** (Name: `NodeJS-20`).
+4. Click **New Item** ➔ Name: `Task-Manager-Pipeline` ➔ Select **Pipeline**.
+5. Scroll to **Pipeline Section**:
+   - **Definition**: `Pipeline script from SCM`
+   - **SCM**: `Git`
+   - **Repository URL**: `https://github.com/Poshanna/Task-Manager.git`
+   - **Branch Specifier**: `*/main`
+   - **Script Path**: `Jenkinsfile`
+6. Click **Save** and **Build Now**.
+
+---
+
+## 🚀 How to Run the Project Locally
+
+### Option A: Docker Compose (Full Stack)
 ```bash
+docker compose up -d --build
+```
+- **Frontend App**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000/api`
+- **Backend Health Check**: `http://localhost:5000/api/health`
+
+### Option B: Local Standalone Development
+```bash
+# Backend (Port 5000)
 cd backend
 npm install
 npm run dev
-```
-The backend API server will run at `http://localhost:5000`.
 
-### 4. Frontend Setup
-In a new terminal:
-```bash
+# Frontend (Port 3000)
 cd frontend
 npm install
 npm run dev
 ```
-The frontend dev server will launch at `http://localhost:3000`.
-
----
-
-## 🐳 Docker Compose Instructions
-
-To build and launch the full multi-container stack (Database + Backend + Frontend):
-
-### Start Containers
-```bash
-docker compose up -d --build
-```
-
-### Verify Container Status
-```bash
-docker compose ps
-```
-- Frontend will be accessible at: `http://localhost:3000`
-- Backend REST API will be accessible at: `http://localhost:5000/api`
-- Health check URL: `http://localhost:5000/api/health`
-
-### Stop Containers
-```bash
-docker compose down
-```
-
----
-
-## 🔄 Jenkins CI/CD Pipeline Overview
-
-The `Jenkinsfile` defines a 7-stage Declarative Pipeline:
-
-1. **Checkout**: Pulls latest code from the GitHub repository.
-2. **Install Dependencies**: Runs `npm install` in both `backend` and `frontend` directories.
-3. **Backend Tests**: Executes Jest & Supertest API tests (`npm test`). Pipeline fails if tests do not pass.
-4. **Frontend Build**: Compiles React assets using Vite (`npm run build`).
-5. **Docker Build**: Builds Docker container images for frontend and backend (`docker compose build`).
-6. **Deploy**: Deploys/restarts application containers via `docker compose up -d`.
-7. **Health Check**: Queries `http://localhost:5000/api/health` with retry loops to verify successful deployment.
-
----
-
-## 🛠️ Jenkins Setup & Configuration Guide
-
-Follow these steps to configure Jenkins for your assignment demonstration:
-
-### Step 1: Install & Launch Jenkins
-1. Download Jenkins LTS for your operating system or run Jenkins via Docker:
-   ```bash
-   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
-   ```
-2. Access `http://localhost:8080` in your web browser.
-3. Retrieve initial admin password and complete initial wizard.
-
-### Step 2: Install Required Plugins
-Navigate to **Manage Jenkins** -> **Plugins** -> **Available Plugins** and install:
-- **Git Plugin**
-- **Pipeline**
-- **Docker Pipeline**
-- **NodeJS Plugin** (Optional, for Node environment tools)
-
-### Step 3: Configure Docker & Host Permissions
-Ensure the Jenkins user has permission to execute Docker commands on the host:
-```bash
-sudo usermod -aG docker jenkins
-```
-
-### Step 4: Create Jenkins Pipeline Job
-1. On the Jenkins Dashboard, click **New Item**.
-2. Enter Job Name: `Task-Manager-Pipeline`.
-3. Select **Pipeline** project type and click **OK**.
-
-### Step 5: Connect GitHub Repository
-1. In the job configuration screen, scroll down to the **Pipeline** section.
-2. Change **Definition** to `Pipeline script from SCM`.
-3. Select **SCM**: `Git`.
-4. Enter **Repository URL**: `https://github.com/<your-username>/<your-repo-name>.git`.
-5. Set **Branch Specifier**: `*/main` (or `*/master`).
-6. Confirm **Script Path**: `Jenkinsfile`.
-7. Click **Save**.
-
-### Step 6: Trigger & Execute Pipeline
-1. Click **Build Now** on the left menu.
-2. Watch each stage execute in the **Stage View**.
-3. Verify that all 7 stages turn green (Success).
-
----
-
-## 🔗 GitHub Webhook Integration
-
-To automate pipeline execution whenever a developer pushes new code:
-
-1. Open your GitHub Repository in a web browser.
-2. Go to **Settings** -> **Webhooks** -> **Add webhook**.
-3. Set **Payload URL**: `http://<your-jenkins-host>:8080/github-webhook/`.
-4. Set **Content type**: `application/json`.
-5. Under triggers, select **Just the push event**.
-6. Click **Add webhook**.
-7. In Jenkins Pipeline job configuration, check **GitHub hook trigger for Gitorious SCM polling**.
 
 ---
 
 ## 🧪 Testing Instructions
 
-Run backend unit and integration tests manually using:
-
 ```bash
 cd backend
 npm test
 ```
-
-### Intentional Test Failure Demo (DevOps Demonstration)
-To demonstrate that Jenkins properly fails when a test breaks:
-1. Open `backend/tests/health.test.js`.
-2. Change line `expect(res.statusCode).toEqual(200);` to `expect(res.statusCode).toEqual(500);`.
-3. Commit and push the code:
-   ```bash
-   git commit -am "test: intentional failure demo"
-   git push
-   ```
-4. Observe Jenkins stage **Backend Tests** turn RED (Failed) and stop deployment.
-
----
-
-## 🧪 Demonstration Workflow
-
-```text
-1. Developer edits application code locally.
-2. Developer commits and pushes code to GitHub:
-   git add .
-   git commit -m "feat: updated task dashboard"
-   git push origin main
-3. GitHub triggers Jenkins pipeline automatically via Webhook.
-4. Jenkins executes all 7 pipeline stages:
-   [Checkout] -> [Install Dependencies] -> [Backend Tests] -> [Frontend Build] -> [Docker Build] -> [Deploy] -> [Health Check]
-5. Application successfully redeployed and verified at http://localhost:3000!
-```
-
----
-
-## 📷 Recommended Screenshots for DevOps Assignment
-
-When submitting your assignment report, capture the following screenshots:
-
-1. **GitHub Repository**: Showing root files (`Jenkinsfile`, `docker-compose.yml`, `backend/`, `frontend/`).
-2. **Jenkins Stage View**: Showing green status for all 7 stages (Checkout to Health Check).
-3. **Jenkins Console Output**: Showing `SUCCESS: CI/CD Pipeline completed successfully!`.
-4. **Docker Container Status**: Output of `docker compose ps` showing running `task_postgres_db`, `task_backend_api`, and `task_frontend_web`.
-5. **Backend Health Check**: Web browser or Postman response from `http://localhost:5000/api/health`.
-6. **Task Management UI - Dashboard**: Showing statistics counters and recent task cards.
-7. **Task Management UI - Tasks Filter & Search**: Showing status/priority filters in action.
-8. **Pipeline Failure Screen**: Jenkins Stage View showing red failure at "Backend Tests" when tests are intentionally broken.
+- Total test suites: 3 passed
+- Total tests: 8 passed

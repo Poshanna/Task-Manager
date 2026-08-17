@@ -1,8 +1,9 @@
 pipeline {
     agent any
+
     tools {
-    nodejs 'NodeJS-20'
-}
+        nodejs 'NodeJS-20'
+    }
 
     environment {
         APP_NAME = 'task-management-system'
@@ -17,22 +18,21 @@ pipeline {
             }
         }
 
-       stage('Install Dependencies') {
-    steps {
-        echo '=== STAGE 2: Installing Backend and Frontend dependencies ==='
+        stage('Install Dependencies') {
+            steps {
+                echo '=== STAGE 2: Installing Backend and Frontend dependencies ==='
+                dir('backend') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm install'
+                }
 
-        dir('backend') {
-            sh 'rm -rf node_modules'
-            sh 'npm install'
+                dir('frontend') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm install --include=optional'
+                    sh 'npm install --no-save --package-lock=false @rollup/rollup-linux-x64-gnu@4.62.4 --force'
+                }
+            }
         }
-
-        dir('frontend') {
-            sh 'rm -rf node_modules'
-            sh 'npm install --include=optional'
-            sh 'npm install --no-save --package-lock=false @rollup/rollup-linux-x64-gnu@4.62.4 --force'
-        }
-    }
-}
 
         stage('Backend Tests') {
             steps {
@@ -55,6 +55,9 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo '=== STAGE 5: Building Docker Images with Docker Compose ==='
+                sh 'docker --version'
+                sh 'docker compose version'
+                sh 'docker compose config'
                 sh 'docker compose build'
             }
         }
@@ -70,9 +73,9 @@ pipeline {
         stage('Health Check') {
             steps {
                 echo '=== STAGE 7: Verifying Backend Endpoint Health ==='
-                sleep 5
+                sleep 10
                 script {
-                    def maxRetries = 10
+                    def maxRetries = 12
                     def retryCount = 0
                     def healthy = false
 
@@ -87,19 +90,19 @@ pipeline {
                                 echo "Health Check SUCCESS! HTTP Status: ${response}"
                                 healthy = true
                             } else {
-                                echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned status: ${response}. Retrying in 3s..."
-                                sleep 3
+                                echo "Health Check attempt ${retryCount + 1}/${maxRetries} returned HTTP status: ${response}. Retrying in 5s..."
+                                sleep 5
                                 retryCount++
                             }
                         } catch (Exception e) {
-                            echo "Health Check attempt ${retryCount + 1}/${maxRetries} failed with error. Retrying in 3s..."
-                            sleep 3
+                            echo "Health Check attempt ${retryCount + 1}/${maxRetries} failed with error. Retrying in 5s..."
+                            sleep 5
                             retryCount++
                         }
                     }
 
                     if (!healthy) {
-                        error("Deployment verification failed: Backend Health Check at ${BACKEND_HEALTH_URL} did not return 200 OK.")
+                        error("Deployment verification failed: Backend Health Check at ${BACKEND_HEALTH_URL} did not return HTTP 200 OK.")
                     }
                 }
             }
